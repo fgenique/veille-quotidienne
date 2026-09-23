@@ -1,0 +1,59 @@
+name: Veille quotidienne
+
+on:
+  schedule:
+    # ⚠️ Les horaires GitHub Actions sont en UTC, PAS en heure de Paris.
+    # Paris = UTC+2 en été (heure d'été, ~fin mars à fin octobre)
+    #       = UTC+1 en hiver (heure d'hiver)
+    #
+    # Exemple ci-dessous : "0 6 * * *" = 06:00 UTC tous les jours
+    #   -> 08:00 à Paris en été, 07:00 à Paris en hiver.
+    #
+    # Adapte le chiffre après "cron: " selon l'heure que tu veux.
+    # Un convertisseur pratique : https://crontab.guru
+    - cron: "0 6 * * *"
+
+  # Permet de lancer le workflow manuellement depuis l'onglet "Actions"
+  # pour tester sans attendre le lendemain.
+  workflow_dispatch: {}
+
+# Nécessaire pour que le workflow puisse "commit + push" la page générée.
+permissions:
+  contents: write
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cloner le dépôt
+        uses: actions/checkout@v4
+
+      - name: Installer Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Installer les dépendances
+        run: pip install -r requirements.txt
+
+      - name: Générer la veille et envoyer les notifications
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+          PAGE_URL: ${{ vars.PAGE_URL }}
+        run: python digest.py
+
+      - name: Publier la page mise à jour sur GitHub Pages
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/index.html
+          if ! git diff --staged --quiet; then
+            git commit -m "Veille du $(date -u +'%Y-%m-%d')"
+            git push
+          else
+            echo "Rien à publier (page inchangée)."
+          fi

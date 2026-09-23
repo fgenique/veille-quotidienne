@@ -1,0 +1,25 @@
+# ============================================================
+#  Configuration de ta veille quotidienne
+# ============================================================
+#
+# Ajoute / supprime / modifie les thèmes ci-dessous. Un thème
+# peut être un mot ("Espace"), une expression ("Intelligence
+# artificielle") ou une requête plus précise ("Formule 1").
+#
+# Pour chaque thème, le script va chercher :
+#   - le meilleur article en français
+#   - le meilleur article en anglais
+#
+topics:
+  - "Intelligence artificielle"
+  - "Économie mondiale"
+  - "Espace"
+
+# Nombre d'articles par langue et par thème.
+# La demande initiale est "1 par thème et par langue" -> laisse 1.
+# Tu peux monter à 2 ou 3 si tu veux plus de choix.
+articles_per_topic: 1
+
+# "Actus de la veille" -> on ne garde que ce qui a été publié
+# dans les N derniers jours (1 = les dernières 24h).
+lookback_days: 1
